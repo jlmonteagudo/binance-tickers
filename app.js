@@ -58,7 +58,11 @@ wsBinanceClient.on('open', () => {
 });
 
 app.get('/tickers', (req, res) => {
-  res.send(tickers);
+  const response = {
+    pairs: tickers,
+  };
+
+  res.send(response);
 });
 
 app.listen(port, () => {
