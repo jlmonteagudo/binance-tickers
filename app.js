@@ -7,6 +7,9 @@ const BINANCE_WEBSOCKET_URL = 'wss://stream.binance.com/stream';
 const BINANCE_TICKERS_STREAM = '!ticker_1h@arr@3000ms';
 const QUOTE_CURRENCY = 'USDT';
 const MAX_NUMBER_OF_PAIRS = 10;
+const MIN_NUMBER_OF_TRADES_PER_HOUR = 1000;
+const MIN_CHANGE_PERCENTAGE = 1;
+
 const wsBinanceClient = new WebSocket(BINANCE_WEBSOCKET_URL);
 
 let tickers = [];
@@ -41,11 +44,14 @@ wsBinanceClient.on('message', (message) => {
       const symbol = exchangeSymbolToStandard(ticker.s);
       return {
         symbol,
-        changePercentage: ticker.P,
+        changePercentage: +ticker.P,
+        trades: ticker.n,
       };
     })
     .filter((ticker) => !ticker.symbol.split('/')[0].endsWith('UP'))
     .filter((ticker) => !ticker.symbol.split('/')[0].endsWith('DOWN'))
+    .filter((ticker) => ticker.trades > MIN_NUMBER_OF_TRADES_PER_HOUR)
+    .filter((ticker) => ticker.changePercentage > MIN_CHANGE_PERCENTAGE)
     .sort((a, b) => b.changePercentage - a.changePercentage)
     .slice(0, MAX_NUMBER_OF_PAIRS);
 
